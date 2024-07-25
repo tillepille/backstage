@@ -13,4 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './fieldExtensions';
+import { AnyApiRef } from '@backstage/core-plugin-api';
+
+/**
+ * Method for creating secret collectors that can be used in the scaffolder form to collect secrets from the end user.
+ * @public
+ */
+export function createScaffolderFormHook<
+  Deps extends { [key in string]: AnyApiRef },
+>(options: {
+  deps: Deps;
+  fn: (ctx: {}, deps: { [key in keyof Deps]: Deps[key]['T'] }) => Promise<void>;
+}): any {}
+
+const githubAuth = createScaffolderFormHook({
+  deps: { configApi: configApiRef },
+  fn: async (asd, { configApi }) => {},
+});
