@@ -229,11 +229,12 @@ export type OverrideExtensionOptions<
   TConfig,
   TConfigInput,
   TConfigSchema extends { [key: string]: (zImpl: typeof z) => z.ZodType },
-  UFactoryOutput extends ExtensionDataValue<any, any>,
+  UOriginalFactoryOutput extends ExtensionDataValue<any, any>,
   TConfigSchemaOverrides extends {
     [key: string]: (zImpl: typeof z) => z.ZodType;
   },
-  UOutputOverrides extends AnyExtensionDataRef = UOutput,
+  UOutputOverrides extends AnyExtensionDataRef,
+  UFactoryOverrideOutput extends ExtensionDataValue<any, any>,
 > = {
   kind?: string;
   namespace?: string;
@@ -245,7 +246,10 @@ export type OverrideExtensionOptions<
   /** @deprecated - use `config.schema` instead */
   configSchema?: PortableSchema<TConfig, TConfigInput>;
   config?: {
-    schema: TConfigSchemaOverrides;
+    schema: TConfigSchemaOverrides & {
+      [KName in keyof TConfig]?: `Error: Config key '${KName &
+        string}' is already defined in parent schema`;
+    };
   };
   factory?(
     originalFactory: (context?: {
@@ -253,7 +257,7 @@ export type OverrideExtensionOptions<
         [key in keyof TConfigSchema]: z.infer<ReturnType<TConfigSchema[key]>>;
       };
       inputs?: Expand<ResolvedExtensionInputs<TInputs>>;
-    }) => Iterable<ExtensionDataRefToValue<UOutput>>,
+    }) => Iterable<UOriginalFactoryOutput>,
     context: {
       node: AppNode;
       config: TConfig &
@@ -270,8 +274,9 @@ export type OverrideExtensionOptions<
             });
       inputs: Expand<ResolvedExtensionInputs<TInputs>>;
     },
-  ): Iterable<UFactoryOutput>;
-} & VerifyExtensionFactoryOutput<UOutput & UOutputOverrides, UFactoryOutput>;
+  ): Iterable<UFactoryOverrideOutput>;
+  // todo(blam): need to verify that the outputs are meged properly.
+} & VerifyExtensionFactoryOutput<UOutput, UFactoryOverrideOutput>;
 
 /** @public */
 export type OverridableExtension<
@@ -291,6 +296,8 @@ export type OverridableExtension<
     TConfigSchemaOverrides extends {
       [key in string]: (zImpl: typeof z) => z.ZodType;
     },
+    UOutputOverrides extends AnyExtensionDataRef,
+    UFactoryOverrideOutput extends ExtensionDataValue<any, any>,
   >(
     options: OverrideExtensionOptions<
       UOutput,
@@ -299,7 +306,9 @@ export type OverridableExtension<
       TConfigInput,
       TConfigSchema,
       UFactoryOutput,
-      TConfigSchemaOverrides
+      TConfigSchemaOverrides,
+      UOutputOverrides,
+      UFactoryOverrideOutput
     >,
   ): ExtensionDefinition<TConfig, TConfigInput>;
 };
