@@ -230,6 +230,10 @@ export type OverrideExtensionOptions<
   TConfigInput,
   TConfigSchema extends { [key: string]: (zImpl: typeof z) => z.ZodType },
   UFactoryOutput extends ExtensionDataValue<any, any>,
+  TConfigSchemaOverrides extends {
+    [key: string]: (zImpl: typeof z) => z.ZodType;
+  },
+  UOutputOverrides extends AnyExtensionDataRef = UOutput,
 > = {
   kind?: string;
   namespace?: string;
@@ -237,11 +241,11 @@ export type OverrideExtensionOptions<
   attachTo?: { id: string; input: string };
   disabled?: boolean;
   inputs?: TInputs;
-  output: Array<UOutput>;
+  output?: Array<UOutputOverrides>;
   /** @deprecated - use `config.schema` instead */
   configSchema?: PortableSchema<TConfig, TConfigInput>;
   config?: {
-    schema: TConfigSchema;
+    schema: TConfigSchemaOverrides;
   };
   factory?(
     originalFactory: (context?: {
@@ -256,6 +260,10 @@ export type OverrideExtensionOptions<
         (string extends keyof TConfigSchema
           ? {}
           : {
+              [key in keyof TConfigSchemaOverrides]: z.infer<
+                ReturnType<TConfigSchemaOverrides[key]>
+              >;
+            } & {
               [key in keyof TConfigSchema]: z.infer<
                 ReturnType<TConfigSchema[key]>
               >;
@@ -263,7 +271,7 @@ export type OverrideExtensionOptions<
       inputs: Expand<ResolvedExtensionInputs<TInputs>>;
     },
   ): Iterable<UFactoryOutput>;
-} & VerifyExtensionFactoryOutput<UOutput, UFactoryOutput>;
+} & VerifyExtensionFactoryOutput<UOutput & UOutputOverrides, UFactoryOutput>;
 
 /** @public */
 export type OverridableExtension<
@@ -279,14 +287,19 @@ export type OverridableExtension<
   TConfigSchema extends { [key: string]: (zImpl: typeof z) => z.ZodType },
   UFactoryOutput extends ExtensionDataValue<any, any>,
 > = {
-  override(
+  override<
+    TConfigSchemaOverrides extends {
+      [key in string]: (zImpl: typeof z) => z.ZodType;
+    },
+  >(
     options: OverrideExtensionOptions<
       UOutput,
       TInputs,
       TConfig,
       TConfigInput,
       TConfigSchema,
-      UFactoryOutput
+      UFactoryOutput,
+      TConfigSchemaOverrides
     >,
   ): ExtensionDefinition<TConfig, TConfigInput>;
 };
@@ -522,6 +535,9 @@ export function createExtension<
       }
       parts.push(`attachTo=${options.attachTo.id}@${options.attachTo.input}`);
       return `ExtensionDefinition{${parts.join(',')}}`;
+    },
+    override() {
+      // todo(blam): implement.
     },
   } as InternalExtensionDefinition<
     TConfig &
