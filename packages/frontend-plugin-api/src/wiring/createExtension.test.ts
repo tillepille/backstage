@@ -500,7 +500,9 @@ describe('createExtension', () => {
         attachTo: { id: 'root', input: 'blob' },
         output: [stringDataRef],
         inputs: {
-          test: createExtensionInput([stringDataRef], { singleton: true }),
+          test: createExtensionInput([stringDataRef], {
+            singleton: true,
+          }),
         },
         config: {
           schema: {
@@ -541,6 +543,32 @@ describe('createExtension', () => {
       unused(override, override2, override3);
 
       expect(true).toBe(true);
+    });
+
+    it('should allow overriding the factory function and calling the original factory', () => {
+      const testExtension = createExtension({
+        namespace: 'test',
+        attachTo: { id: 'root', input: 'blob' },
+        output: [stringDataRef],
+        config: {
+          schema: {
+            foo: z => z.string().optional(),
+          },
+        },
+        factory() {
+          return [stringDataRef('default')];
+        },
+      });
+
+      testExtension.override({
+        factory(originalFactory) {
+          const response = originalFactory();
+
+          const foo: string = response.get(stringDataRef);
+
+          return [stringDataRef(`foo-${foo}-override`)];
+        },
+      });
     });
   });
 });
