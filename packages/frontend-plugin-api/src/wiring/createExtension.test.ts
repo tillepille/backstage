@@ -596,7 +596,7 @@ describe('createExtension', () => {
       const overriden = testExtension.override({
         config: {
           schema: {
-            bar: z => z.string().optional(),
+            bar: z => z.string().default('hello'),
           },
         },
         factory(originalFactory, { config }) {
@@ -608,7 +608,15 @@ describe('createExtension', () => {
         },
       });
 
-      const tester = createExtensionTester(overriden).render();
+      expect(createExtensionTester(overriden).data(stringDataRef)).toBe(
+        'foo-boom-override-hello',
+      );
+
+      expect(
+        createExtensionTester(overriden, {
+          config: { foo: 'hello', bar: 'world' },
+        }).data(stringDataRef),
+      ).toBe('foo-hello-override-world');
     });
   });
 });
