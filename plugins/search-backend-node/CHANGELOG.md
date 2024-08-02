@@ -1,5 +1,19 @@
 # @backstage/plugin-search-backend-node
 
+## 1.2.28-next.2
+
+### Patch Changes
+
+- 3123c16: Fix package metadata
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1-next.1
+  - @backstage/backend-common@0.23.4-next.2
+  - @backstage/plugin-search-common@1.2.14-next.1
+  - @backstage/backend-plugin-api@0.7.1-next.2
+  - @backstage/backend-tasks@0.5.28-next.2
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+
 ## 1.2.28-next.1
 
 ### Patch Changes

@@ -1,5 +1,24 @@
 # @backstage/backend-app-api
 
+## 0.8.1-next.2
+
+### Patch Changes
+
+- 93095ee: Make sure node-fetch is version 2.7.0 or greater
+- 80a0737: Added configuration for the `packages` options to config schema
+- Updated dependencies
+  - @backstage/backend-common@0.23.4-next.2
+  - @backstage/config-loader@1.9.0-next.2
+  - @backstage/plugin-auth-node@0.4.18-next.2
+  - @backstage/plugin-permission-node@0.8.1-next.2
+  - @backstage/backend-plugin-api@0.7.1-next.2
+  - @backstage/backend-tasks@0.5.28-next.2
+  - @backstage/cli-common@0.1.14
+  - @backstage/cli-node@0.2.7
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
 ## 0.8.1-next.1
 
 ### Patch Changes

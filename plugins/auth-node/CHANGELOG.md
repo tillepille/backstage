@@ -1,5 +1,19 @@
 # @backstage/plugin-auth-node
 
+## 0.4.18-next.2
+
+### Patch Changes
+
+- 93095ee: Make sure node-fetch is version 2.7.0 or greater
+- Updated dependencies
+  - @backstage/backend-common@0.23.4-next.2
+  - @backstage/backend-plugin-api@0.7.1-next.2
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
 ## 0.4.18-next.1
 
 ### Patch Changes

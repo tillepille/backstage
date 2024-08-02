@@ -1,5 +1,16 @@
 # @backstage/plugin-auth-backend-module-cloudflare-access-provider
 
+## 0.1.6-next.2
+
+### Patch Changes
+
+- 93095ee: Make sure node-fetch is version 2.7.0 or greater
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.4.18-next.2
+  - @backstage/backend-plugin-api@0.7.1-next.2
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+
 ## 0.1.6-next.1
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @backstage/frontend-test-utils
 
+## 0.1.12-next.2
+
+### Patch Changes
+
+- 8209449: Added new APIs for testing extensions
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.8-next.1
+  - @backstage/test-utils@1.5.10-next.2
+  - @backstage/config@1.2.0
+  - @backstage/frontend-app-api@0.7.5-next.1
+  - @backstage/types@1.1.1
+
 ## 0.1.12-next.1
 
 ### Patch Changes
