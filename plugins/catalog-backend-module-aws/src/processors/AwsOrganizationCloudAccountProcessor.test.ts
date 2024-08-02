@@ -19,6 +19,7 @@ import 'aws-sdk-client-mock-jest';
 import { AwsOrganizationCloudAccountProcessor } from './AwsOrganizationCloudAccountProcessor';
 import {
   ListAccountsCommand,
+  ListTagsForResourceCommand,
   OrganizationsClient,
 } from '@aws-sdk/client-organizations';
 
@@ -47,6 +48,19 @@ describe('AwsOrganizationCloudAccountProcessor', () => {
         ],
         NextToken: undefined,
       });
+      mock.on(ListTagsForResourceCommand).resolves({
+        Tags: [
+          {
+            Key: 'owner',
+            Value: 'backstage',
+          },
+          {
+            Key: 'cost-center',
+            Value: 'devops',
+          },
+        ],
+        NextToken: undefined,
+      });
       await processor.readLocation(location, false, emit);
       expect(emit).toHaveBeenCalledWith({
         type: 'entity',
@@ -61,6 +75,8 @@ describe('AwsOrganizationCloudAccountProcessor', () => {
               'amazonaws.com/account-id': '957140518395',
               'amazonaws.com/account-email': 'aws-test-account@backstage.io',
               'amazonaws.com/organization-id': 'o-1vl18kc5a3',
+              'amazonaws.com/tag-owner': 'backstage',
+              'amazonaws.com/tag-cost-center': 'devops',
             },
             labels: {
               'amazonaws.com/account-status': 'active',
@@ -110,6 +126,8 @@ describe('AwsOrganizationCloudAccountProcessor', () => {
               'amazonaws.com/account-id': '957140518395',
               'amazonaws.com/account-email': '',
               'amazonaws.com/organization-id': 'o-1vl18kc5a3',
+              'amazonaws.com/tag-owner': 'backstage',
+              'amazonaws.com/tag-cost-center': 'devops',
             },
             labels: {
               'amazonaws.com/account-status': '',

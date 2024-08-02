@@ -24,7 +24,9 @@ import {
 import { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
   Account,
+  Tag,
   ListAccountsResponse,
+  ListTagsForResourceResponse,
   Organizations,
 } from '@aws-sdk/client-organizations';
 import { readAwsOrganizationConfig } from '../awsOrganization/config';
@@ -41,6 +43,7 @@ const ACCOUNTID_ANNOTATION = 'amazonaws.com/account-id';
 const ACCOUNT_EMAIL_ANNOTATION = 'amazonaws.com/account-email';
 const ARN_ANNOTATION = 'amazonaws.com/arn';
 const ORGANIZATION_ANNOTATION = 'amazonaws.com/organization-id';
+const TAG_PREFIX = 'amazonaws.com/tag-';
 
 const ACCOUNT_STATUS_LABEL = 'amazonaws.com/account-status';
 
@@ -105,9 +108,14 @@ export class AwsOrganizationCloudAccountProcessor implements CatalogProcessor {
     }
 
     this.logger?.info('Discovering AWS Organization Account objects');
+    const entities: ResourceEntityV1alpha1[] = [];
 
-    (await this.getAwsAccounts())
-      .map(account => this.mapAccountToComponent(account))
+    const accounts = await this.getAwsAccounts();
+    for (const account of accounts) {
+      const tags = await this.getAWSAccountTags(account.Id);
+      entities.push(this.mapAccountToComponent(account, tags));
+    }
+    entities
       .filter(entity => {
         if (location.target !== '') {
           if (entity.metadata.annotations) {
@@ -149,6 +157,33 @@ export class AwsOrganizationCloudAccountProcessor implements CatalogProcessor {
       organizationId: parts[parts.length - 2],
     };
   }
+  // reads the tags of the account by its accountId
+  private async getAWSAccountTags(accountId: string): Tag[] {
+    let tags: Tag[] = [];
+    let isInitialAttempt = true;
+    let nextToken = undefined;
+    while (isInitialAttempt || nextToken) {
+      isInitialAttempt = false;
+      const accountTags: ListTagsForResourceResponse =
+        await this.organizations.listTagsForResource({
+          NextToken: nextToken,
+          AccountId: accountId,
+        });
+      if (accountTags.Tags) {
+        tags = tags.concat(accountTags.Tags);
+      }
+      nextToken = accountTags.nextToken;
+    }
+    return tags;
+  }
+
+  private generateAnnotationsFromTags(tags: Tag[]): { [key: string]: string } {
+    const annotations: { [key: string]: string } = {};
+    tags.forEach(tag => {
+      annotations[TAG_PREFIX + tag.Key] = tag.Value;
+    });
+    return annotations;
+  }
 
   private async getAwsAccounts(): Promise<Account[]> {
     let awsAccounts: Account[] = [];
@@ -167,10 +202,14 @@ export class AwsOrganizationCloudAccountProcessor implements CatalogProcessor {
     return awsAccounts;
   }
 
-  private mapAccountToComponent(account: Account): ResourceEntityV1alpha1 {
+  private mapAccountToComponent(
+    account: Account,
+    tags: Tag[],
+  ): ResourceEntityV1alpha1 {
     const { accountId, organizationId } = this.extractInformationFromArn(
       account.Arn as string,
     );
+    const tagAnnotations = this.generateAnnotationsFromTags(tags);
     return {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Resource',
@@ -180,6 +219,7 @@ export class AwsOrganizationCloudAccountProcessor implements CatalogProcessor {
           [ARN_ANNOTATION]: account.Arn || '',
           [ORGANIZATION_ANNOTATION]: organizationId,
           [ACCOUNT_EMAIL_ANNOTATION]: account.Email || '',
+          ...tagAnnotations,
         },
         labels: {
           [ACCOUNT_STATUS_LABEL]: this.normalizeAccountStatus(
